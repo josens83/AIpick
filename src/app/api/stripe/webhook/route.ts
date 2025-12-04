@@ -1,0 +1,146 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { headers } from 'next/headers'
+import { stripe } from '@/lib/stripe'
+import { prisma } from '@/lib/db'
+import Stripe from 'stripe'
+
+export async function POST(request: NextRequest) {
+  const body = await request.text()
+  const headersList = await headers()
+  const signature = headersList.get('stripe-signature')
+
+  if (!signature) {
+    return NextResponse.json(
+      { error: 'Missing stripe-signature header' },
+      { status: 400 }
+    )
+  }
+
+  let event: Stripe.Event
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    )
+  } catch (error) {
+    console.error('Webhook signature verification failed:', error)
+    return NextResponse.json(
+      { error: 'Invalid signature' },
+      { status: 400 }
+    )
+  }
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session
+        const userId = session.client_reference_id
+
+        if (userId && session.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(
+            session.subscription as string
+          )
+
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              stripeCustomerId: session.customer as string,
+              stripeSubscriptionId: subscription.id,
+              stripePriceId: subscription.items.data[0].price.id,
+              stripeCurrentPeriodEnd: new Date(
+                subscription.current_period_end * 1000
+              ),
+              plan: subscription.items.data[0].price.id ===
+                process.env.STRIPE_PRO_PRICE_ID
+                ? 'pro'
+                : 'enterprise',
+            },
+          })
+        }
+        break
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription
+        const userId = subscription.metadata.userId
+
+        if (userId) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              stripePriceId: subscription.items.data[0].price.id,
+              stripeCurrentPeriodEnd: new Date(
+                subscription.current_period_end * 1000
+              ),
+              plan:
+                subscription.status === 'active'
+                  ? subscription.items.data[0].price.id ===
+                    process.env.STRIPE_PRO_PRICE_ID
+                    ? 'pro'
+                    : 'enterprise'
+                  : 'free',
+            },
+          })
+        }
+        break
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription
+        const userId = subscription.metadata.userId
+
+        if (userId) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              plan: 'free',
+              stripeSubscriptionId: null,
+              stripePriceId: null,
+              stripeCurrentPeriodEnd: null,
+            },
+          })
+        }
+        break
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice
+        const subscriptionId = invoice.subscription as string
+
+        if (subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          const userId = subscription.metadata.userId
+
+          if (userId) {
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                stripeCurrentPeriodEnd: new Date(
+                  subscription.current_period_end * 1000
+                ),
+              },
+            })
+          }
+        }
+        break
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice
+        // Send email notification about failed payment
+        console.log('Payment failed for invoice:', invoice.id)
+        break
+      }
+    }
+
+    return NextResponse.json({ received: true })
+  } catch (error) {
+    console.error('Error processing webhook:', error)
+    return NextResponse.json(
+      { error: 'Webhook processing failed' },
+      { status: 500 }
+    )
+  }
+}
