@@ -1,25 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getAllTools } from '@/lib/data'
+import { toolQuerySchema, parseSearchParams } from '@/lib/validations'
+import { apiSuccess, handleApiError } from '@/lib/api-utils'
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const query = searchParams.get('q') || undefined
-    const category = searchParams.get('category') || undefined
-    const pricing = searchParams.get('pricing') || undefined
+    const params = parseSearchParams(toolQuerySchema, request.nextUrl.searchParams)
 
     const tools = await getAllTools({
-      query,
-      category,
-      pricing,
+      query: params.q,
+      category: params.category,
+      pricing: params.pricing || undefined,
     })
 
-    return NextResponse.json({ tools, total: tools.length })
+    return apiSuccess({
+      tools,
+      total: tools.length,
+      page: params.page,
+      limit: params.limit,
+    })
   } catch (error) {
-    console.error('Error fetching tools:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch tools' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

@@ -1,15 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
-import { z } from 'zod'
-
-const subscribeSchema = z.object({
-  email: z.string().email('유효한 이메일 주소를 입력해주세요'),
-})
+import { newsletterSubscribeSchema } from '@/lib/validations'
+import { apiSuccess, handleApiError } from '@/lib/api-utils'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email } = subscribeSchema.parse(body)
+    const { email } = newsletterSubscribeSchema.parse(body)
 
     // Check if already subscribed
     const existing = await prisma.newsletter.findUnique({
@@ -17,10 +14,10 @@ export async function POST(request: NextRequest) {
     })
 
     if (existing) {
-      return NextResponse.json(
-        { message: '이미 구독 중입니다' },
-        { status: 200 }
-      )
+      return apiSuccess({
+        message: '이미 구독 중입니다',
+        alreadySubscribed: true,
+      })
     }
 
     // Create new subscription
@@ -38,22 +35,11 @@ export async function POST(request: NextRequest) {
     //   html: '...',
     // })
 
-    return NextResponse.json({
+    return apiSuccess({
       message: '뉴스레터 구독이 완료되었습니다',
-      success: true,
+      alreadySubscribed: false,
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: error.errors[0].message },
-        { status: 400 }
-      )
-    }
-
-    console.error('Error subscribing to newsletter:', error)
-    return NextResponse.json(
-      { error: '구독 처리 중 오류가 발생했습니다' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

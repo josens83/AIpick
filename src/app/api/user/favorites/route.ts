@@ -1,16 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { favoriteActionSchema } from '@/lib/validations'
+import {
+  apiSuccess,
+  handleApiError,
+  apiError,
+  ERROR_CODES,
+} from '@/lib/api-utils'
 
 export async function GET() {
   try {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return apiError(ERROR_CODES.UNAUTHORIZED, 'Authentication required')
     }
 
     const user = await prisma.user.findUnique({
@@ -18,13 +22,9 @@ export async function GET() {
       select: { favorites: true },
     })
 
-    return NextResponse.json({ favorites: user?.favorites || [] })
+    return apiSuccess({ favorites: user?.favorites || [] })
   } catch (error) {
-    console.error('Error fetching favorites:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch favorites' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }
 
@@ -33,21 +33,11 @@ export async function POST(request: NextRequest) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return apiError(ERROR_CODES.UNAUTHORIZED, 'Authentication required')
     }
 
     const body = await request.json()
-    const { toolId, action } = body
-
-    if (!toolId || !action) {
-      return NextResponse.json(
-        { error: 'Tool ID and action are required' },
-        { status: 400 }
-      )
-    }
+    const { toolId, action } = favoriteActionSchema.parse(body)
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -60,13 +50,8 @@ export async function POST(request: NextRequest) {
       if (!favorites.includes(toolId)) {
         favorites = [...favorites, toolId]
       }
-    } else if (action === 'remove') {
-      favorites = favorites.filter((id: string) => id !== toolId)
     } else {
-      return NextResponse.json(
-        { error: 'Invalid action' },
-        { status: 400 }
-      )
+      favorites = favorites.filter((id: string) => id !== toolId)
     }
 
     await prisma.user.update({
@@ -74,12 +59,8 @@ export async function POST(request: NextRequest) {
       data: { favorites },
     })
 
-    return NextResponse.json({ favorites })
+    return apiSuccess({ favorites })
   } catch (error) {
-    console.error('Error updating favorites:', error)
-    return NextResponse.json(
-      { error: 'Failed to update favorites' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }
