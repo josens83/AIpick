@@ -76,6 +76,11 @@ export function ReviewList({ toolId, refreshTrigger }: ReviewListProps) {
       }
     } catch (error) {
       logger.error('Failed to fetch reviews', error)
+      toast({
+        title: '리뷰를 불러오는데 실패했습니다',
+        description: '잠시 후 다시 시도해주세요',
+        variant: 'destructive',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -99,6 +104,11 @@ export function ReviewList({ toolId, refreshTrigger }: ReviewListProps) {
       }
     } catch (error) {
       logger.error('Failed to mark as helpful', error)
+      toast({
+        title: '오류가 발생했습니다',
+        description: '다시 시도해주세요',
+        variant: 'destructive',
+      })
     }
   }
 

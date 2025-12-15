@@ -35,7 +35,10 @@ const categories = [
 
 export function CategorySection() {
   return (
-    <section className="py-16 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent">
+    <section
+      aria-labelledby="category-section-title"
+      className="py-16 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -44,7 +47,7 @@ export function CategorySection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h2 className="text-2xl font-bold text-white mb-2">카테고리별 탐색</h2>
+          <h2 id="category-section-title" className="text-2xl font-bold text-white mb-2">카테고리별 탐색</h2>
           <p className="text-gray-400">필요한 분야의 AI 도구를 찾아보세요</p>
         </motion.div>
 
@@ -57,7 +60,10 @@ export function CategorySection() {
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
-              <Link href={`/explore?category=${category.slug}`}>
+              <Link
+                  href={`/explore?category=${category.slug}`}
+                  aria-label={`${category.name} 카테고리 - ${category.count}개 도구 보기`}
+                >
                 <Card className="group cursor-pointer card-hover h-full">
                   <CardContent className="p-4 text-center">
                     <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} mb-3 group-hover:scale-110 transition-transform`}>

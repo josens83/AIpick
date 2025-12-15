@@ -19,10 +19,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials, formatDate } from '@/lib/utils'
+import { logger } from '@/lib/logger'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function AccountPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { toast } = useToast()
   const [managingSubscription, setManagingSubscription] = useState(false)
 
   useEffect(() => {
@@ -35,14 +38,27 @@ export default function AccountPage() {
     setManagingSubscription(true)
     try {
       const res = await fetch('/api/stripe/portal', { method: 'POST' })
+
+      if (!res.ok) {
+        throw new Error(`HTTP error: ${res.status}`)
+      }
+
       const data = await res.json()
       if (data.url) {
         window.location.href = data.url
+      } else {
+        throw new Error('포털 URL을 받지 못했습니다')
       }
     } catch (error) {
-      console.error('Error:', error)
+      logger.error('Failed to open subscription portal', error)
+      toast({
+        title: '구독 관리 페이지 열기 실패',
+        description: '잠시 후 다시 시도해주세요',
+        variant: 'destructive',
+      })
+    } finally {
+      setManagingSubscription(false)
     }
-    setManagingSubscription(false)
   }
 
   if (status === 'loading') {

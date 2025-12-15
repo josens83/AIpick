@@ -63,14 +63,11 @@ export function WorkflowInput() {
   const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null)
   const [showResults, setShowResults] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!query.trim()) return
-
+  const fetchRecommendations = async (searchQuery: string) => {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`/api/tools/recommend?q=${encodeURIComponent(query)}&limit=6`)
+      const response = await fetch(`/api/tools/recommend?q=${encodeURIComponent(searchQuery)}&limit=6`)
 
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`)
@@ -83,40 +80,25 @@ export function WorkflowInput() {
         setShowResults(true)
       } else {
         // Fallback to search if no recommendations
-        router.push(`/explore?q=${encodeURIComponent(query)}`)
+        router.push(`/explore?q=${encodeURIComponent(searchQuery)}`)
       }
-    } catch (error) {
+    } catch {
       // Fallback to search on error
-      router.push(`/explore?q=${encodeURIComponent(query)}`)
+      router.push(`/explore?q=${encodeURIComponent(searchQuery)}`)
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!query.trim()) return
+    await fetchRecommendations(query)
+  }
+
   const handleQuickWorkflow = async (workflowQuery: string) => {
     setQuery(workflowQuery)
-    setIsLoading(true)
-
-    try {
-      const response = await fetch(`/api/tools/recommend?q=${encodeURIComponent(workflowQuery)}&limit=6`)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.data.recommendations.length > 0) {
-        setRecommendations(data.data)
-        setShowResults(true)
-      } else {
-        router.push(`/explore?q=${encodeURIComponent(workflowQuery)}`)
-      }
-    } catch (error) {
-      router.push(`/explore?q=${encodeURIComponent(workflowQuery)}`)
-    } finally {
-      setIsLoading(false)
-    }
+    await fetchRecommendations(workflowQuery)
   }
 
   const handleCloseResults = () => {

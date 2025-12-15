@@ -375,13 +375,14 @@ export function ExploreContent({ searchParams }: ExploreContentProps) {
             </div>
 
             {/* Tools Grid/List */}
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-64 rounded-xl bg-white/5 animate-pulse" />
-                ))}
-              </div>
-            ) : error ? (
+            <div aria-live="polite" aria-busy={loading}>
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" role="status" aria-label="도구 목록 불러오는 중">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="h-64 rounded-xl bg-white/5 animate-pulse" />
+                  ))}
+                </div>
+              ) : error ? (
               <Card className="p-12 text-center">
                 <p className="text-red-400 mb-4">{error}</p>
                 <Button variant="outline" onClick={fetchTools}>
@@ -406,6 +407,7 @@ export function ExploreContent({ searchParams }: ExploreContentProps) {
                 ))}
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
