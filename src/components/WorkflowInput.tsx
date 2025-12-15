@@ -71,6 +71,11 @@ export function WorkflowInput() {
 
     try {
       const response = await fetch(`/api/tools/recommend?q=${encodeURIComponent(query)}&limit=6`)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`)
+      }
+
       const data = await response.json()
 
       if (data.success && data.data.recommendations.length > 0) {
@@ -94,6 +99,11 @@ export function WorkflowInput() {
 
     try {
       const response = await fetch(`/api/tools/recommend?q=${encodeURIComponent(workflowQuery)}&limit=6`)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`)
+      }
+
       const data = await response.json()
 
       if (data.success && data.data.recommendations.length > 0) {

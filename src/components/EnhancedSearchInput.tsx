@@ -197,11 +197,14 @@ export const EnhancedSearchInput = memo(function EnhancedSearchInput({
   const highlightMatch = (text: string, query: string) => {
     if (!query.trim()) return text
 
-    const regex = new RegExp(`(${query})`, 'gi')
+    // Escape special regex characters in query
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`(${escapedQuery})`, 'gi')
     const parts = text.split(regex)
 
+    // When splitting on a capturing group, odd indices are matches
     return parts.map((part, i) =>
-      regex.test(part) ? (
+      i % 2 === 1 ? (
         <mark key={i} className="bg-purple-500/30 text-purple-200 rounded px-0.5">
           {part}
         </mark>

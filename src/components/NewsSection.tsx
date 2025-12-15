@@ -62,6 +62,7 @@ export function NewsSection({ news }: NewsSectionProps) {
                         src={item.image}
                         alt={item.title}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent" />

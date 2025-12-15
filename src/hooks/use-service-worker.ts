@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 interface ServiceWorkerState {
   isSupported: boolean
@@ -17,6 +17,10 @@ export function useServiceWorker() {
     registration: null,
   })
 
+  // Store references for cleanup
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null)
+  const updateFoundHandlerRef = useRef<(() => void) | null>(null)
+
   useEffect(() => {
     // Check if service workers are supported
     const isSupported = 'serviceWorker' in navigator
@@ -32,6 +36,8 @@ export function useServiceWorker() {
           scope: '/',
         })
 
+        registrationRef.current = registration
+
         setState((prev) => ({
           ...prev,
           isRegistered: true,
@@ -39,17 +45,23 @@ export function useServiceWorker() {
         }))
 
         // Check for updates
-        registration.addEventListener('updatefound', () => {
+        const handleUpdateFound = () => {
           const newWorker = registration.installing
           if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
+            const handleStateChange = () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New content is available, show update prompt
-                console.log('[SW] New content available')
+                // New content is available
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('[SW] New content available')
+                }
               }
-            })
+            }
+            newWorker.addEventListener('statechange', handleStateChange)
           }
-        })
+        }
+
+        updateFoundHandlerRef.current = handleUpdateFound
+        registration.addEventListener('updatefound', handleUpdateFound)
       } catch (error) {
         console.error('[SW] Registration failed:', error)
       }
@@ -67,6 +79,11 @@ export function useServiceWorker() {
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
+
+      // Clean up service worker event listeners
+      if (registrationRef.current && updateFoundHandlerRef.current) {
+        registrationRef.current.removeEventListener('updatefound', updateFoundHandlerRef.current)
+      }
     }
   }, [])
 

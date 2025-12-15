@@ -49,6 +49,7 @@ export function ExploreContent({ searchParams }: ExploreContentProps) {
 
   const [tools, setTools] = useState<Tool[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState((searchParams.q as string) || '')
   const [category, setCategory] = useState((searchParams.category as string) || '')
   const [pricing, setPricing] = useState((searchParams.pricing as string) || 'all')
@@ -57,16 +58,24 @@ export function ExploreContent({ searchParams }: ExploreContentProps) {
   const [showFilters, setShowFilters] = useState(false)
 
   const fetchTools = useCallback(async () => {
-    setLoading(true)
-    const { tools: results } = await getAllTools({
-      query,
-      category,
-      pricing: pricing === 'all' ? undefined : pricing,
-      sortBy: sortBy === 'reviews' ? 'reviewCount' : sortBy,
-    })
+    try {
+      setLoading(true)
+      setError(null)
+      const { tools: results } = await getAllTools({
+        query,
+        category,
+        pricing: pricing === 'all' ? undefined : pricing,
+        sortBy: sortBy === 'reviews' ? 'reviewCount' : sortBy,
+      })
 
-    setTools(results)
-    setLoading(false)
+      setTools(results)
+    } catch (err) {
+      console.error('Failed to fetch tools:', err)
+      setError('도구를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.')
+      setTools([])
+    } finally {
+      setLoading(false)
+    }
   }, [query, category, pricing, sortBy])
 
   useEffect(() => {
@@ -371,6 +380,13 @@ export function ExploreContent({ searchParams }: ExploreContentProps) {
                   <div key={i} className="h-64 rounded-xl bg-white/5 animate-pulse" />
                 ))}
               </div>
+            ) : error ? (
+              <Card className="p-12 text-center">
+                <p className="text-red-400 mb-4">{error}</p>
+                <Button variant="outline" onClick={fetchTools}>
+                  다시 시도
+                </Button>
+              </Card>
             ) : tools.length === 0 ? (
               <Card className="p-12 text-center">
                 <p className="text-gray-400 mb-4">검색 결과가 없습니다</p>

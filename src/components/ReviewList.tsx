@@ -57,6 +57,11 @@ export function ReviewList({ toolId, refreshTrigger }: ReviewListProps) {
       const response = await fetch(
         `/api/reviews?toolId=${toolId}&page=${currentPage}&limit=10&sort=${sort}`
       )
+
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`)
+      }
+
       const data = await response.json()
 
       if (data.success) {

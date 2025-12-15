@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Smartphone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ export function InstallPrompt() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isVisible, setIsVisible] = useState(false)
   const [dismissed, setDismissed] = useLocalStorage('pwa-install-dismissed', false)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -23,7 +24,7 @@ export function InstallPrompt() {
 
       // Show prompt after 30 seconds if not dismissed
       if (!dismissed) {
-        setTimeout(() => setIsVisible(true), 30000)
+        timeoutRef.current = setTimeout(() => setIsVisible(true), 30000)
       }
     }
 
@@ -39,6 +40,9 @@ export function InstallPrompt() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
       window.removeEventListener('appinstalled', handleAppInstalled)
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
     }
   }, [dismissed])
 
