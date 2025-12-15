@@ -17,9 +17,10 @@ export async function GET(request: NextRequest) {
       return apiError(ERROR_CODES.FORBIDDEN, 'Admin access required')
     }
 
-    // Get date range from query params
+    // Get date range from query params with bounds validation
     const searchParams = request.nextUrl.searchParams
-    const days = parseInt(searchParams.get('days') || '30')
+    const rawDays = parseInt(searchParams.get('days') || '30', 10)
+    const days = Math.min(Math.max(isNaN(rawDays) ? 30 : rawDays, 1), 365)
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 

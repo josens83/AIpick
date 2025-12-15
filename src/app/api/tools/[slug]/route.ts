@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getToolBySlug, getRelatedTools } from '@/lib/data'
+import { apiSuccess, apiError, handleApiError, ERROR_CODES } from '@/lib/api-utils'
 
 export async function GET(
   request: NextRequest,
@@ -10,20 +11,13 @@ export async function GET(
     const tool = await getToolBySlug(slug)
 
     if (!tool) {
-      return NextResponse.json(
-        { error: 'Tool not found' },
-        { status: 404 }
-      )
+      return apiError(ERROR_CODES.NOT_FOUND, 'Tool not found')
     }
 
     const relatedTools = await getRelatedTools(tool, 3)
 
-    return NextResponse.json({ tool, relatedTools })
+    return apiSuccess({ tool, relatedTools })
   } catch (error) {
-    console.error('Error fetching tool:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch tool' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

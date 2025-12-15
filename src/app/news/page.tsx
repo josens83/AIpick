@@ -27,12 +27,23 @@ export default function NewsPage() {
   const [isSubscribing, setIsSubscribing] = useState(false)
 
   useEffect(() => {
-    getLatestNews().then((data) => {
-      setNews(data)
-      setFilteredNews(data)
-      setLoading(false)
-    })
-  }, [])
+    getLatestNews()
+      .then((data) => {
+        setNews(data)
+        setFilteredNews(data)
+      })
+      .catch((error) => {
+        console.error('Failed to fetch news:', error)
+        toast({
+          title: '뉴스를 불러오는데 실패했습니다',
+          description: '잠시 후 다시 시도해주세요',
+          variant: 'destructive',
+        })
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [toast])
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

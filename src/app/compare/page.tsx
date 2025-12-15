@@ -46,16 +46,26 @@ function CompareContent() {
         .then(tools => {
           setSelectedTools(tools.filter(Boolean) as Tool[])
         })
+        .catch(error => {
+          console.error('Failed to load tools:', error)
+        })
     }
   }, [searchParams])
 
   // Search tools
   useEffect(() => {
-    if (searchQuery) {
-      getAllTools({ query: searchQuery }).then(result => setSearchResults(result.tools))
-    } else {
-      getAllTools().then(result => setSearchResults(result.tools))
+    const fetchTools = async () => {
+      try {
+        const result = searchQuery
+          ? await getAllTools({ query: searchQuery })
+          : await getAllTools()
+        setSearchResults(result.tools)
+      } catch (error) {
+        console.error('Failed to search tools:', error)
+        setSearchResults([])
+      }
     }
+    fetchTools()
   }, [searchQuery])
 
   const addTool = (tool: Tool) => {

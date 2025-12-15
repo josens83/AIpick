@@ -13,10 +13,9 @@ const securityHeaders = {
   'X-XSS-Protection': '1; mode=block',
 }
 
-// Content Security Policy
-const cspDirectives = {
+// Content Security Policy (stricter in production)
+const baseCspDirectives = {
   'default-src': ["'self'"],
-  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://js.stripe.com'],
   'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   'img-src': ["'self'", 'data:', 'blob:', 'https:', '*.googleusercontent.com'],
   'font-src': ["'self'", 'https://fonts.gstatic.com'],
@@ -26,11 +25,24 @@ const cspDirectives = {
   'base-uri': ["'self'"],
   'form-action': ["'self'"],
   'frame-ancestors': ["'self'"],
+  'upgrade-insecure-requests': [],
 }
 
-function buildCsp(): string {
+function buildCsp(isDev: boolean): string {
+  const cspDirectives = {
+    ...baseCspDirectives,
+    // In development, Next.js needs unsafe-eval for hot reload
+    // In production, we only allow unsafe-inline for Next.js inline scripts
+    'script-src': isDev
+      ? ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://js.stripe.com']
+      : ["'self'", "'unsafe-inline'", 'https://js.stripe.com'],
+  }
+
   return Object.entries(cspDirectives)
-    .map(([directive, values]) => `${directive} ${values.join(' ')}`)
+    .filter(([, values]) => values.length > 0 || values.length === 0)
+    .map(([directive, values]) =>
+      values.length > 0 ? `${directive} ${values.join(' ')}` : directive
+    )
     .join('; ')
 }
 
@@ -141,10 +153,11 @@ export default auth((req) => {
   })
 
   // Add CSP header (less strict in development)
-  if (process.env.NODE_ENV === 'production') {
-    response.headers.set('Content-Security-Policy', buildCsp())
+  const isDev = process.env.NODE_ENV !== 'production'
+  if (!isDev) {
+    response.headers.set('Content-Security-Policy', buildCsp(false))
   } else {
-    response.headers.set('Content-Security-Policy-Report-Only', buildCsp())
+    response.headers.set('Content-Security-Policy-Report-Only', buildCsp(true))
   }
 
   return response

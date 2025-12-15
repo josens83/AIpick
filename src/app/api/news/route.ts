@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getLatestNews } from '@/lib/data'
+import { apiSuccess, handleApiError } from '@/lib/api-utils'
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const category = searchParams.get('category')
-    const limit = parseInt(searchParams.get('limit') || '10', 10)
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '10', 10), 1), 50)
 
     let news = await getLatestNews()
 
@@ -17,12 +18,8 @@ export async function GET(request: NextRequest) {
     // Limit results
     news = news.slice(0, limit)
 
-    return NextResponse.json({ news, total: news.length })
+    return apiSuccess({ news, total: news.length })
   } catch (error) {
-    console.error('Error fetching news:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch news' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

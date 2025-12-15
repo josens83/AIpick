@@ -71,7 +71,7 @@ export const contactSchema = z.object({
 export const reviewSchema = z.object({
   toolId: z.string().min(1, 'Tool ID is required'),
   rating: z.number().int().min(1).max(5),
-  title: z.string().min(1, 'Title is required').max(100),
+  title: z.string().max(100).optional(),
   content: z.string().min(10, 'Review must be at least 10 characters').max(2000),
   pros: z.array(z.string().max(200)).max(5).optional(),
   cons: z.array(z.string().max(200)).max(5).optional(),
