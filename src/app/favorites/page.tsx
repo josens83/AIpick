@@ -26,7 +26,7 @@ export default function FavoritesPage() {
   useEffect(() => {
     async function loadFavorites() {
       if (session?.user?.favorites && session.user.favorites.length > 0) {
-        const allTools = await getAllTools()
+        const { tools: allTools } = await getAllTools()
         const favTools = allTools.filter(tool =>
           session.user.favorites.includes(tool.id)
         )

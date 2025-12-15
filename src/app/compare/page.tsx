@@ -52,9 +52,9 @@ function CompareContent() {
   // Search tools
   useEffect(() => {
     if (searchQuery) {
-      getAllTools({ query: searchQuery }).then(setSearchResults)
+      getAllTools({ query: searchQuery }).then(result => setSearchResults(result.tools))
     } else {
-      getAllTools().then(setSearchResults)
+      getAllTools().then(result => setSearchResults(result.tools))
     }
   }, [searchQuery])
 

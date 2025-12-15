@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
-import { beforeAll, afterEach, afterAll } from 'vitest'
+import React from 'react'
+import { vi, beforeAll, afterEach, afterAll } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
 // Cleanup after each test case

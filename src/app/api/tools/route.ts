@@ -7,15 +7,17 @@ export async function GET(request: NextRequest) {
   try {
     const params = parseSearchParams(toolQuerySchema, request.nextUrl.searchParams)
 
-    const tools = await getAllTools({
+    const { tools, total } = await getAllTools({
       query: params.q,
       category: params.category,
       pricing: params.pricing || undefined,
+      page: params.page,
+      limit: params.limit,
     })
 
     return apiSuccess({
       tools,
-      total: tools.length,
+      total,
       page: params.page,
       limit: params.limit,
     })

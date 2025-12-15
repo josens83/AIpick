@@ -158,7 +158,6 @@ export default function PricingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           plan: planId,
-          interval: isYearly ? 'year' : 'month',
         }),
       })
 
