@@ -43,16 +43,22 @@ export async function POST(request: NextRequest) {
             session.subscription as string
           )
 
+          const subscriptionItem = subscription.items.data[0]
+          if (!subscriptionItem?.price?.id) {
+            console.error('No subscription item or price found')
+            break
+          }
+
           await prisma.user.update({
             where: { id: userId },
             data: {
               stripeCustomerId: session.customer as string,
               stripeSubscriptionId: subscription.id,
-              stripePriceId: subscription.items.data[0].price.id,
+              stripePriceId: subscriptionItem.price.id,
               stripeCurrentPeriodEnd: new Date(
                 subscription.current_period_end * 1000
               ),
-              plan: subscription.items.data[0].price.id ===
+              plan: subscriptionItem.price.id ===
                 process.env.STRIPE_PRO_PRICE_ID
                 ? 'pro'
                 : 'enterprise',
@@ -64,19 +70,25 @@ export async function POST(request: NextRequest) {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
-        const userId = subscription.metadata.userId
+        const userId = subscription.metadata?.userId
 
         if (userId) {
+          const subscriptionItem = subscription.items.data[0]
+          if (!subscriptionItem?.price?.id) {
+            console.error('No subscription item or price found for update')
+            break
+          }
+
           await prisma.user.update({
             where: { id: userId },
             data: {
-              stripePriceId: subscription.items.data[0].price.id,
+              stripePriceId: subscriptionItem.price.id,
               stripeCurrentPeriodEnd: new Date(
                 subscription.current_period_end * 1000
               ),
               plan:
                 subscription.status === 'active'
-                  ? subscription.items.data[0].price.id ===
+                  ? subscriptionItem.price.id ===
                     process.env.STRIPE_PRO_PRICE_ID
                     ? 'pro'
                     : 'enterprise'
@@ -89,7 +101,7 @@ export async function POST(request: NextRequest) {
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
-        const userId = subscription.metadata.userId
+        const userId = subscription.metadata?.userId
 
         if (userId) {
           await prisma.user.update({

@@ -1,5 +1,6 @@
 import type { Tool, NewsItem, Category, PricingInfo } from '@/types'
 import prisma from './db'
+import { logger } from './logger'
 
 // Helper to transform Prisma Tool to our Tool type
 function transformTool(dbTool: {
@@ -91,13 +92,13 @@ export async function getFeaturedTools(): Promise<Tool[]> {
     })
 
     if (tools.length === 0) {
-      console.warn('No featured tools in database, using mock data')
+      logger.warn('No featured tools in database, using mock data')
       return mockTools.filter(tool => tool.featured)
     }
 
     return tools.map(transformTool)
   } catch (error) {
-    console.error('Database error in getFeaturedTools:', error)
+    logger.error('Database error in getFeaturedTools:', error)
     return mockTools.filter(tool => tool.featured)
   }
 }
@@ -111,13 +112,13 @@ export async function getLatestNews(limit: number = 10): Promise<NewsItem[]> {
     })
 
     if (news.length === 0) {
-      console.warn('No news in database, using mock data')
+      logger.warn('No news in database, using mock data')
       return mockNews
     }
 
     return news
   } catch (error) {
-    console.error('Database error in getLatestNews:', error)
+    logger.error('Database error in getLatestNews:', error)
     return mockNews
   }
 }
@@ -203,13 +204,13 @@ export async function getAllTools(filters?: {
     }
 
     if (filteredTools.length === 0 && !filters?.query && !filters?.category) {
-      console.warn('No tools in database, using mock data')
+      logger.warn('No tools in database, using mock data')
       return { tools: mockTools, total: mockTools.length }
     }
 
     return { tools: filteredTools, total }
   } catch (error) {
-    console.error('Database error in getAllTools:', error)
+    logger.error('Database error in getAllTools:', error)
     return { tools: mockTools, total: mockTools.length }
   }
 }
@@ -250,7 +251,7 @@ export async function getToolBySlug(slug: string): Promise<Tool | null> {
       })),
     }
   } catch (error) {
-    console.error('Database error in getToolBySlug:', error)
+    logger.error('Database error in getToolBySlug:', error)
     const mockTool = mockTools.find(t => t.slug === slug)
     return mockTool || null
   }
@@ -271,7 +272,7 @@ export async function getToolsByCategory(category: string, limit: number = 10): 
 
     return tools.map(transformTool)
   } catch (error) {
-    console.error('Database error in getToolsByCategory:', error)
+    logger.error('Database error in getToolsByCategory:', error)
     return mockTools.filter(t => t.category === category)
   }
 }
@@ -303,7 +304,7 @@ export async function searchTools(query: string, limit: number = 20): Promise<To
 
     return tools.map(transformTool)
   } catch (error) {
-    console.error('Database error in searchTools:', error)
+    logger.error('Database error in searchTools:', error)
     const lowerQuery = query.toLowerCase()
     return mockTools.filter(
       tool =>
@@ -341,7 +342,7 @@ export async function getRelatedTools(tool: Tool, limit: number = 3): Promise<To
 
     return tools.map(transformTool)
   } catch (error) {
-    console.error('Database error in getRelatedTools:', error)
+    logger.error('Database error in getRelatedTools:', error)
     return mockTools
       .filter(t => t.id !== tool.id && t.category === tool.category)
       .slice(0, limit)
@@ -356,13 +357,13 @@ export async function getCategories(): Promise<Category[]> {
     })
 
     if (dbCategories.length === 0) {
-      console.warn('No categories in database, using mock data')
+      logger.warn('No categories in database, using mock data')
       return mockCategories
     }
 
     return dbCategories
   } catch (error) {
-    console.error('Database error in getCategories:', error)
+    logger.error('Database error in getCategories:', error)
     return mockCategories
   }
 }
@@ -378,7 +379,7 @@ export async function getToolsByIds(ids: string[]): Promise<Tool[]> {
 
     return tools.map(transformTool)
   } catch (error) {
-    console.error('Database error in getToolsByIds:', error)
+    logger.error('Database error in getToolsByIds:', error)
     return mockTools.filter(t => ids.includes(t.id))
   }
 }
@@ -400,7 +401,7 @@ export async function getTrendingTools(limit: number = 6): Promise<Tool[]> {
 
     return tools.map(transformTool)
   } catch (error) {
-    console.error('Database error in getTrendingTools:', error)
+    logger.error('Database error in getTrendingTools:', error)
     return mockTools.slice(0, limit)
   }
 }
@@ -419,7 +420,7 @@ export async function getNewTools(limit: number = 6): Promise<Tool[]> {
 
     return tools.map(transformTool)
   } catch (error) {
-    console.error('Database error in getNewTools:', error)
+    logger.error('Database error in getNewTools:', error)
     return mockTools.slice(0, limit)
   }
 }
@@ -429,7 +430,7 @@ export async function getToolCount(): Promise<number> {
   try {
     return await prisma.tool.count()
   } catch (error) {
-    console.error('Database error in getToolCount:', error)
+    logger.error('Database error in getToolCount:', error)
     return mockTools.length
   }
 }
@@ -449,7 +450,7 @@ export async function getHotNews(limit: number = 3): Promise<NewsItem[]> {
 
     return news
   } catch (error) {
-    console.error('Database error in getHotNews:', error)
+    logger.error('Database error in getHotNews:', error)
     return mockNews.filter(n => n.isHot).slice(0, limit)
   }
 }

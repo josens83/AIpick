@@ -30,10 +30,14 @@ function NewsSkeleton() {
 }
 
 export default async function HomePage() {
-  const [featuredTools, latestNews] = await Promise.all([
+  // Fetch data independently to avoid cascade failures
+  const [featuredToolsResult, latestNewsResult] = await Promise.allSettled([
     getFeaturedTools(),
     getLatestNews(),
   ])
+
+  const featuredTools = featuredToolsResult.status === 'fulfilled' ? featuredToolsResult.value : []
+  const latestNews = latestNewsResult.status === 'fulfilled' ? latestNewsResult.value : []
 
   return (
     <div className="min-h-screen">

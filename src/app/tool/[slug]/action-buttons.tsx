@@ -41,9 +41,9 @@ export function ActionButtons({ toolId, toolSlug, toolName, initialFavorited = f
 
     try {
       const response = await fetch('/api/user/favorites', {
-        method: isFavorited ? 'DELETE' : 'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ toolId }),
+        body: JSON.stringify({ toolId, action: isFavorited ? 'remove' : 'add' }),
       })
 
       const data = await response.json()

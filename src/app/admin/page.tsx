@@ -1,18 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { isAdmin } from '@/lib/admin'
 import { AdminDashboard } from './admin-dashboard'
-
-// Check if user is admin
-async function isAdmin(userId: string): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { email: true },
-  })
-
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',') || []
-  return user ? adminEmails.includes(user.email) : false
-}
 
 export const metadata = {
   title: '관리자 대시보드 - AIpick',

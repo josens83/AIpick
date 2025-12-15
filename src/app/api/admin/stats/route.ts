@@ -1,19 +1,8 @@
 import { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { isAdmin } from '@/lib/admin'
 import { apiSuccess, handleApiError, apiError, ERROR_CODES } from '@/lib/api-utils'
-
-// Admin role check (in production, use proper role-based access control)
-async function isAdmin(userId: string): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { email: true },
-  })
-
-  // Add admin emails here or use a proper role system
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',') || []
-  return user ? adminEmails.includes(user.email) : false
-}
 
 export async function GET(request: NextRequest) {
   try {
