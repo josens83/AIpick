@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Newspaper, Clock, ExternalLink, Filter } from 'lucide-react'
+import { Newspaper, Clock, ExternalLink, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useToast } from '@/components/ui/use-toast'
 import { formatRelativeTime } from '@/lib/utils'
 import { getLatestNews } from '@/lib/data'
 import type { NewsItem } from '@/types'
@@ -15,10 +16,15 @@ import type { NewsItem } from '@/types'
 const categories = ['전체', '출시', '업데이트', '튜토리얼', '산업뉴스']
 
 export default function NewsPage() {
+  const { toast } = useToast()
   const [news, setNews] = useState<NewsItem[]>([])
   const [filteredNews, setFilteredNews] = useState<NewsItem[]>([])
   const [selectedCategory, setSelectedCategory] = useState('전체')
   const [loading, setLoading] = useState(true)
+
+  // Newsletter form state
+  const [email, setEmail] = useState('')
+  const [isSubscribing, setIsSubscribing] = useState(false)
 
   useEffect(() => {
     getLatestNews().then((data) => {
@@ -27,6 +33,48 @@ export default function NewsPage() {
       setLoading(false)
     })
   }, [])
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!email || !email.includes('@')) {
+      toast({
+        title: '유효한 이메일을 입력해주세요',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsSubscribing(true)
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast({
+          title: '구독이 완료되었습니다!',
+          description: '매주 AI 뉴스레터를 받아보실 수 있습니다.',
+        })
+        setEmail('')
+      } else {
+        throw new Error(data.error?.message || '구독에 실패했습니다')
+      }
+    } catch (error) {
+      toast({
+        title: '오류가 발생했습니다',
+        description: error instanceof Error ? error.message : '다시 시도해 주세요',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSubscribing(false)
+    }
+  }
 
   useEffect(() => {
     if (selectedCategory === '전체') {
@@ -173,14 +221,24 @@ export default function NewsPage() {
                 <p className="text-gray-300 mb-6">
                   매주 최신 AI 소식, 도구 업데이트, 그리고 유용한 팁을 받아보세요
                 </p>
-                <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                   <input
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="이메일 주소"
-                    className="flex-1 h-12 px-4 rounded-lg border border-white/20 bg-white/5 text-white placeholder:text-gray-400 focus:outline-none focus:border-purple-500"
+                    disabled={isSubscribing}
+                    className="flex-1 h-12 px-4 rounded-lg border border-white/20 bg-white/5 text-white placeholder:text-gray-400 focus:outline-none focus:border-purple-500 disabled:opacity-50"
                   />
-                  <Button size="lg" className="h-12">
-                    구독하기
+                  <Button type="submit" size="lg" className="h-12" disabled={isSubscribing}>
+                    {isSubscribing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        구독 중...
+                      </>
+                    ) : (
+                      '구독하기'
+                    )}
                   </Button>
                 </form>
                 <p className="mt-3 text-xs text-gray-400">

@@ -58,29 +58,14 @@ export function ExploreContent({ searchParams }: ExploreContentProps) {
 
   const fetchTools = useCallback(async () => {
     setLoading(true)
-    const results = await getAllTools({
+    const { tools: results } = await getAllTools({
       query,
       category,
       pricing: pricing === 'all' ? undefined : pricing,
+      sortBy: sortBy === 'reviews' ? 'reviewCount' : sortBy,
     })
 
-    // Sort results
-    const sorted = [...results].sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return b.rating - a.rating
-        case 'reviews':
-          return b.reviewCount - a.reviewCount
-        case 'name':
-          return a.name.localeCompare(b.name)
-        case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        default:
-          return 0
-      }
-    })
-
-    setTools(sorted)
+    setTools(results)
     setLoading(false)
   }, [query, category, pricing, sortBy])
 

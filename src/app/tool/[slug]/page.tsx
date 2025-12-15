@@ -5,8 +5,6 @@ import { Metadata } from 'next'
 import {
   Star,
   ExternalLink,
-  Heart,
-  Share2,
   Users,
   Check,
   X,
@@ -19,6 +17,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ToolCard } from '@/components/ToolCard'
 import { getToolBySlug, getRelatedTools } from '@/lib/data'
+import { ReviewSection } from './review-section'
+import { ActionButtons } from './action-buttons'
 
 interface ToolPageProps {
   params: Promise<{ slug: string }>
@@ -129,14 +129,11 @@ export default async function ToolPage({ params }: ToolPageProps) {
                       사이트 방문
                     </a>
                   </Button>
-                  <Button variant="outline" size="lg">
-                    <Heart className="mr-2 h-4 w-4" />
-                    즐겨찾기
-                  </Button>
-                  <Button variant="outline" size="lg">
-                    <Share2 className="mr-2 h-4 w-4" />
-                    공유
-                  </Button>
+                  <ActionButtons
+                    toolId={tool.id}
+                    toolSlug={tool.slug}
+                    toolName={tool.name}
+                  />
                   <Button variant="outline" size="lg" asChild>
                     <Link href={`/compare?tools=${tool.slug}`}>
                       비교에 추가
@@ -269,17 +266,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
               </TabsContent>
 
               <TabsContent value="reviews" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>사용자 리뷰</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 text-gray-400">
-                      <p className="mb-4">아직 리뷰가 없습니다.</p>
-                      <Button variant="outline">첫 번째 리뷰 작성하기</Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ReviewSection toolId={tool.id} />
               </TabsContent>
             </Tabs>
           </div>

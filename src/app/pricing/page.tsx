@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Check, Sparkles, Zap, Building2, HelpCircle } from 'lucide-react'
+import { Check, Sparkles, Zap, Building2, HelpCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
+import { useToast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
 
 const plans = [
@@ -101,7 +103,31 @@ function formatPrice(price: number): string {
 
 export default function PricingPage() {
   const { data: session } = useSession()
+  const searchParams = useSearchParams()
+  const { toast } = useToast()
   const [isYearly, setIsYearly] = useState(false)
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+
+  // Handle success/cancel from Stripe redirect
+  useEffect(() => {
+    const success = searchParams.get('success')
+    const canceled = searchParams.get('canceled')
+
+    if (success === 'true') {
+      toast({
+        title: '결제가 완료되었습니다!',
+        description: 'Pro 플랜이 활성화되었습니다. 새로운 기능을 즐겨보세요!',
+      })
+    }
+
+    if (canceled === 'true') {
+      toast({
+        title: '결제가 취소되었습니다',
+        description: '언제든 다시 시도해 주세요.',
+        variant: 'destructive',
+      })
+    }
+  }, [searchParams, toast])
 
   const handleSubscribe = async (planId: string) => {
     if (!session) {
@@ -109,8 +135,52 @@ export default function PricingPage() {
       return
     }
 
-    // In production, this would redirect to Stripe Checkout
-    console.log('Subscribe to', planId)
+    // Free plan doesn't need payment
+    if (planId === 'free') {
+      toast({
+        title: '무료 플랜을 이용 중입니다',
+        description: '더 많은 기능이 필요하시면 Pro 플랜을 확인해보세요!',
+      })
+      return
+    }
+
+    // Enterprise plan - contact sales
+    if (planId === 'enterprise') {
+      window.location.href = 'mailto:enterprise@aipick.kr?subject=Enterprise 플랜 문의'
+      return
+    }
+
+    setLoadingPlan(planId)
+
+    try {
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: planId,
+          interval: isYearly ? 'year' : 'month',
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.error?.message || '결제 페이지 생성에 실패했습니다')
+      }
+
+      // Redirect to Stripe Checkout
+      if (data.data?.url) {
+        window.location.href = data.data.url
+      }
+    } catch (error) {
+      toast({
+        title: '오류가 발생했습니다',
+        description: error instanceof Error ? error.message : '다시 시도해 주세요',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoadingPlan(null)
+    }
   }
 
   return (
@@ -225,8 +295,16 @@ export default function PricingPage() {
                     variant={plan.popular ? 'default' : 'outline'}
                     size="lg"
                     onClick={() => handleSubscribe(plan.id)}
+                    disabled={loadingPlan !== null}
                   >
-                    {plan.cta}
+                    {loadingPlan === plan.id ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        처리 중...
+                      </>
+                    ) : (
+                      plan.cta
+                    )}
                   </Button>
                 </CardFooter>
               </Card>

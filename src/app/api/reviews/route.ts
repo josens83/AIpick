@@ -9,7 +9,7 @@ import {
   ERROR_CODES,
   apiPaginatedSuccess,
 } from '@/lib/api-utils'
-import { z } from 'zod'
+import { rateLimiters, getClientIp, withRateLimit } from '@/lib/rate-limit'
 
 // Get reviews for a tool
 export async function GET(request: NextRequest) {
@@ -63,6 +63,16 @@ export async function GET(request: NextRequest) {
 // Create a new review
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting (5 requests per minute for review submissions)
+    const rateLimitResult = await withRateLimit(
+      request,
+      rateLimiters.strict,
+      getClientIp(request)
+    )
+    if (rateLimitResult) {
+      return rateLimitResult
+    }
+
     const session = await auth()
 
     if (!session?.user?.id) {

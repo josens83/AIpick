@@ -1,6 +1,34 @@
-import type { Tool, NewsItem, Category } from '@/types'
+import type { Tool, NewsItem, Category, PricingInfo } from '@/types'
+import prisma from './db'
 
-// Mock data for featured tools
+// Helper to transform Prisma Tool to our Tool type
+function transformTool(dbTool: {
+  id: string
+  name: string
+  slug: string
+  description: string
+  logo: string
+  url: string
+  category: string
+  tags: string[]
+  pricing: unknown
+  features: string[]
+  pros: string[]
+  cons: string[]
+  rating: number
+  reviewCount: number
+  userCount: string | null
+  featured: boolean
+  createdAt: Date
+  updatedAt: Date
+}): Tool {
+  return {
+    ...dbTool,
+    pricing: dbTool.pricing as PricingInfo,
+  }
+}
+
+// Fallback mock data for development when DB is not available
 const mockTools: Tool[] = [
   {
     id: '1',
@@ -22,109 +50,8 @@ const mockTools: Tool[] = [
     createdAt: new Date(),
     updatedAt: new Date(),
   },
-  {
-    id: '2',
-    name: 'Midjourney',
-    slug: 'midjourney',
-    description: '텍스트 프롬프트로 놀라운 이미지를 생성하는 AI 아트 생성기입니다.',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Midjourney_Emblem.png',
-    url: 'https://midjourney.com',
-    category: 'image',
-    tags: ['이미지 생성', 'AI 아트', '디자인'],
-    pricing: { free: false, plans: [{ name: 'Basic', price: '$10/월', features: ['200분/월', '개인 갤러리'] }] },
-    features: ['고품질 이미지 생성', '스타일 커스터마이징', '업스케일링', '변형 생성'],
-    pros: ['뛰어난 품질', '다양한 스타일', '활발한 커뮤니티'],
-    cons: ['Discord 필수', '학습 곡선'],
-    rating: 4.9,
-    reviewCount: 8930,
-    userCount: '15M+',
-    featured: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'Claude',
-    slug: 'claude',
-    description: 'Anthropic의 안전하고 도움이 되는 AI 어시스턴트입니다.',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/18/Claude_AI.png',
-    url: 'https://claude.ai',
-    category: 'chatbot',
-    tags: ['AI 챗봇', '글쓰기', '분석', '코딩'],
-    pricing: { free: true, plans: [{ name: 'Pro', price: '$20/월', features: ['Claude 3 Opus', '더 긴 대화', '우선 접근'] }] },
-    features: ['긴 컨텍스트 처리', '문서 분석', '코드 작성', '안전한 AI'],
-    pros: ['긴 문맥 이해', '정확한 응답', '안전성'],
-    cons: ['이미지 생성 불가', '제한된 플러그인'],
-    rating: 4.7,
-    reviewCount: 6240,
-    userCount: '10M+',
-    featured: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '4',
-    name: 'DALL-E 3',
-    slug: 'dall-e-3',
-    description: 'OpenAI의 최신 이미지 생성 AI. 텍스트 설명으로 정확한 이미지를 만듭니다.',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/1200px-ChatGPT_logo.svg.png',
-    url: 'https://openai.com/dall-e-3',
-    category: 'image',
-    tags: ['이미지 생성', 'AI 아트', '디자인'],
-    pricing: { free: false, plans: [{ name: 'ChatGPT Plus', price: '$20/월', features: ['DALL-E 3 접근', 'GPT-4 포함'] }] },
-    features: ['정확한 텍스트 렌더링', '프롬프트 이해력', 'ChatGPT 통합'],
-    pros: ['텍스트 정확도', '쉬운 사용', 'ChatGPT 연동'],
-    cons: ['별도 구독 필요', '스타일 제한'],
-    rating: 4.6,
-    reviewCount: 4520,
-    userCount: '50M+',
-    featured: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '5',
-    name: 'GitHub Copilot',
-    slug: 'github-copilot',
-    description: 'AI 기반 코드 자동완성 도구. 주석이나 코드 컨텍스트에서 코드를 제안합니다.',
-    logo: 'https://github.githubassets.com/images/modules/site/copilot/copilot.png',
-    url: 'https://github.com/features/copilot',
-    category: 'coding',
-    tags: ['코딩', '개발', '생산성', '자동완성'],
-    pricing: { free: false, plans: [{ name: 'Individual', price: '$10/월', features: ['코드 자동완성', 'IDE 통합'] }] },
-    features: ['코드 자동완성', '주석 기반 생성', '다중 언어 지원', 'IDE 통합'],
-    pros: ['높은 생산성', '다양한 언어', 'IDE 통합'],
-    cons: ['구독 필요', '때때로 부정확'],
-    rating: 4.7,
-    reviewCount: 12340,
-    userCount: '1M+',
-    featured: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '6',
-    name: 'Notion AI',
-    slug: 'notion-ai',
-    description: 'Notion에 통합된 AI 어시스턴트. 글쓰기, 요약, 브레인스토밍을 도와줍니다.',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png',
-    url: 'https://notion.so/product/ai',
-    category: 'productivity',
-    tags: ['생산성', '글쓰기', '노트', '협업'],
-    pricing: { free: false, plans: [{ name: 'AI 추가', price: '$10/월', features: ['무제한 AI 사용', '모든 작업 공간'] }] },
-    features: ['글쓰기 보조', '요약', '번역', '브레인스토밍'],
-    pros: ['Notion 통합', '다양한 기능', '쉬운 사용'],
-    cons: ['추가 비용', 'Notion 필수'],
-    rating: 4.5,
-    reviewCount: 3210,
-    userCount: '35M+',
-    featured: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
 ]
 
-// Mock news data
 const mockNews: NewsItem[] = [
   {
     id: '1',
@@ -138,34 +65,9 @@ const mockNews: NewsItem[] = [
     publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
     createdAt: new Date(),
   },
-  {
-    id: '2',
-    title: 'Anthropic, Claude 3.5 Sonnet 공개',
-    description: '더 빠르고 정확한 응답을 제공하는 Claude 3.5 Sonnet이 출시되었습니다.',
-    url: 'https://example.com/news/claude-3-5',
-    image: 'https://images.unsplash.com/photo-1676573410330-9c41e6e62aee?w=800',
-    source: 'Tech News',
-    category: '출시',
-    isHot: true,
-    publishedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    createdAt: new Date(),
-  },
-  {
-    id: '3',
-    title: 'AI 이미지 생성 도구 비교: Midjourney vs DALL-E 3',
-    description: '두 대표적인 AI 이미지 생성 도구의 장단점을 비교해보았습니다.',
-    url: 'https://example.com/news/image-ai-compare',
-    image: 'https://images.unsplash.com/photo-1686191128892-3b37add4ce3d?w=800',
-    source: 'AI Review',
-    category: '튜토리얼',
-    isHot: false,
-    publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    createdAt: new Date(),
-  },
 ]
 
-// Mock categories
-export const categories: Category[] = [
+const mockCategories: Category[] = [
   { id: '1', name: '글쓰기', slug: 'writing', description: 'AI 글쓰기 도구', icon: 'FileText', toolCount: 120, order: 1 },
   { id: '2', name: '이미지', slug: 'image', description: 'AI 이미지 생성', icon: 'Image', toolCount: 85, order: 2 },
   { id: '3', name: '영상', slug: 'video', description: 'AI 영상 편집', icon: 'Video', toolCount: 45, order: 3 },
@@ -176,69 +78,378 @@ export const categories: Category[] = [
   { id: '8', name: '마케팅', slug: 'marketing', description: 'AI 마케팅 도구', icon: 'Mail', toolCount: 55, order: 8 },
 ]
 
-// Data fetching functions
+// Export categories for backward compatibility
+export const categories = mockCategories
+
+// Get featured tools
 export async function getFeaturedTools(): Promise<Tool[]> {
-  // In production, this would fetch from database
-  return mockTools.filter(tool => tool.featured)
+  try {
+    const tools = await prisma.tool.findMany({
+      where: { featured: true },
+      orderBy: { rating: 'desc' },
+      take: 6,
+    })
+
+    if (tools.length === 0) {
+      console.warn('No featured tools in database, using mock data')
+      return mockTools.filter(tool => tool.featured)
+    }
+
+    return tools.map(transformTool)
+  } catch (error) {
+    console.error('Database error in getFeaturedTools:', error)
+    return mockTools.filter(tool => tool.featured)
+  }
 }
 
-export async function getLatestNews(): Promise<NewsItem[]> {
-  // In production, this would fetch from database/API
-  return mockNews
+// Get latest news
+export async function getLatestNews(limit: number = 10): Promise<NewsItem[]> {
+  try {
+    const news = await prisma.newsItem.findMany({
+      orderBy: { publishedAt: 'desc' },
+      take: limit,
+    })
+
+    if (news.length === 0) {
+      console.warn('No news in database, using mock data')
+      return mockNews
+    }
+
+    return news
+  } catch (error) {
+    console.error('Database error in getLatestNews:', error)
+    return mockNews
+  }
 }
 
+// Get all tools with filters
 export async function getAllTools(filters?: {
   query?: string
   category?: string
   pricing?: string
-}): Promise<Tool[]> {
-  let tools = [...mockTools]
+  sortBy?: string
+  page?: number
+  limit?: number
+}): Promise<{ tools: Tool[]; total: number }> {
+  try {
+    const page = filters?.page || 1
+    const limit = filters?.limit || 12
+    const skip = (page - 1) * limit
 
-  if (filters?.query) {
-    const query = filters.query.toLowerCase()
-    tools = tools.filter(tool =>
-      tool.name.toLowerCase().includes(query) ||
-      tool.description.toLowerCase().includes(query) ||
-      tool.tags.some(tag => tag.toLowerCase().includes(query))
+    // Build where clause
+    const where: {
+      AND?: Array<{
+        OR?: Array<{
+          name?: { contains: string; mode: 'insensitive' }
+          description?: { contains: string; mode: 'insensitive' }
+          tags?: { has: string }
+        }>
+        category?: string
+      }>
+      category?: string
+    } = {}
+
+    if (filters?.query) {
+      where.AND = [
+        {
+          OR: [
+            { name: { contains: filters.query, mode: 'insensitive' } },
+            { description: { contains: filters.query, mode: 'insensitive' } },
+            { tags: { has: filters.query } },
+          ],
+        },
+      ]
+    }
+
+    if (filters?.category && filters.category !== 'all') {
+      where.category = filters.category
+    }
+
+    // Build orderBy
+    type OrderByType = { rating?: 'desc' | 'asc'; reviewCount?: 'desc' | 'asc'; name?: 'desc' | 'asc'; createdAt?: 'desc' | 'asc' }
+    let orderBy: OrderByType = { rating: 'desc' }
+
+    switch (filters?.sortBy) {
+      case 'reviewCount':
+        orderBy = { reviewCount: 'desc' }
+        break
+      case 'name':
+        orderBy = { name: 'asc' }
+        break
+      case 'newest':
+        orderBy = { createdAt: 'desc' }
+        break
+      default:
+        orderBy = { rating: 'desc' }
+    }
+
+    const [tools, total] = await Promise.all([
+      prisma.tool.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      prisma.tool.count({ where }),
+    ])
+
+    // Filter by pricing (needs post-query filtering due to JSON field)
+    let filteredTools = tools.map(transformTool)
+
+    if (filters?.pricing === 'free') {
+      filteredTools = filteredTools.filter(tool => tool.pricing.free)
+    } else if (filters?.pricing === 'paid') {
+      filteredTools = filteredTools.filter(tool => !tool.pricing.free)
+    }
+
+    if (filteredTools.length === 0 && !filters?.query && !filters?.category) {
+      console.warn('No tools in database, using mock data')
+      return { tools: mockTools, total: mockTools.length }
+    }
+
+    return { tools: filteredTools, total }
+  } catch (error) {
+    console.error('Database error in getAllTools:', error)
+    return { tools: mockTools, total: mockTools.length }
+  }
+}
+
+// Get tool by slug
+export async function getToolBySlug(slug: string): Promise<Tool | null> {
+  try {
+    const tool = await prisma.tool.findUnique({
+      where: { slug },
+      include: {
+        reviews: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        },
+      },
+    })
+
+    if (!tool) {
+      // Fallback to mock data
+      const mockTool = mockTools.find(t => t.slug === slug)
+      return mockTool || null
+    }
+
+    return {
+      ...transformTool(tool),
+      reviews: tool.reviews.map(review => ({
+        ...review,
+        user: review.user,
+      })),
+    }
+  } catch (error) {
+    console.error('Database error in getToolBySlug:', error)
+    const mockTool = mockTools.find(t => t.slug === slug)
+    return mockTool || null
+  }
+}
+
+// Get tools by category
+export async function getToolsByCategory(category: string, limit: number = 10): Promise<Tool[]> {
+  try {
+    const tools = await prisma.tool.findMany({
+      where: { category },
+      orderBy: { rating: 'desc' },
+      take: limit,
+    })
+
+    if (tools.length === 0) {
+      return mockTools.filter(t => t.category === category)
+    }
+
+    return tools.map(transformTool)
+  } catch (error) {
+    console.error('Database error in getToolsByCategory:', error)
+    return mockTools.filter(t => t.category === category)
+  }
+}
+
+// Search tools
+export async function searchTools(query: string, limit: number = 20): Promise<Tool[]> {
+  try {
+    const tools = await prisma.tool.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+          { tags: { hasSome: [query] } },
+        ],
+      },
+      orderBy: { rating: 'desc' },
+      take: limit,
+    })
+
+    if (tools.length === 0) {
+      const lowerQuery = query.toLowerCase()
+      return mockTools.filter(
+        tool =>
+          tool.name.toLowerCase().includes(lowerQuery) ||
+          tool.description.toLowerCase().includes(lowerQuery) ||
+          tool.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+      )
+    }
+
+    return tools.map(transformTool)
+  } catch (error) {
+    console.error('Database error in searchTools:', error)
+    const lowerQuery = query.toLowerCase()
+    return mockTools.filter(
+      tool =>
+        tool.name.toLowerCase().includes(lowerQuery) ||
+        tool.description.toLowerCase().includes(lowerQuery) ||
+        tool.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
     )
   }
-
-  if (filters?.category) {
-    tools = tools.filter(tool => tool.category === filters.category)
-  }
-
-  if (filters?.pricing === 'free') {
-    tools = tools.filter(tool => tool.pricing.free)
-  } else if (filters?.pricing === 'paid') {
-    tools = tools.filter(tool => !tool.pricing.free)
-  }
-
-  return tools
 }
 
-export async function getToolBySlug(slug: string): Promise<Tool | null> {
-  return mockTools.find(tool => tool.slug === slug) || null
-}
-
-export async function getToolsByCategory(category: string): Promise<Tool[]> {
-  return mockTools.filter(tool => tool.category === category)
-}
-
-export async function searchTools(query: string): Promise<Tool[]> {
-  const lowerQuery = query.toLowerCase()
-  return mockTools.filter(tool =>
-    tool.name.toLowerCase().includes(lowerQuery) ||
-    tool.description.toLowerCase().includes(lowerQuery) ||
-    tool.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
-  )
-}
-
+// Get related tools
 export async function getRelatedTools(tool: Tool, limit: number = 3): Promise<Tool[]> {
-  return mockTools
-    .filter(t => t.id !== tool.id && t.category === tool.category)
-    .slice(0, limit)
+  try {
+    const tools = await prisma.tool.findMany({
+      where: {
+        AND: [
+          { id: { not: tool.id } },
+          {
+            OR: [
+              { category: tool.category },
+              { tags: { hasSome: tool.tags } },
+            ],
+          },
+        ],
+      },
+      orderBy: { rating: 'desc' },
+      take: limit,
+    })
+
+    if (tools.length === 0) {
+      return mockTools
+        .filter(t => t.id !== tool.id && t.category === tool.category)
+        .slice(0, limit)
+    }
+
+    return tools.map(transformTool)
+  } catch (error) {
+    console.error('Database error in getRelatedTools:', error)
+    return mockTools
+      .filter(t => t.id !== tool.id && t.category === tool.category)
+      .slice(0, limit)
+  }
 }
 
+// Get all categories
 export async function getCategories(): Promise<Category[]> {
-  return categories
+  try {
+    const dbCategories = await prisma.category.findMany({
+      orderBy: { order: 'asc' },
+    })
+
+    if (dbCategories.length === 0) {
+      console.warn('No categories in database, using mock data')
+      return mockCategories
+    }
+
+    return dbCategories
+  } catch (error) {
+    console.error('Database error in getCategories:', error)
+    return mockCategories
+  }
+}
+
+// Get tools by IDs (for comparison, favorites, etc.)
+export async function getToolsByIds(ids: string[]): Promise<Tool[]> {
+  try {
+    const tools = await prisma.tool.findMany({
+      where: {
+        id: { in: ids },
+      },
+    })
+
+    return tools.map(transformTool)
+  } catch (error) {
+    console.error('Database error in getToolsByIds:', error)
+    return mockTools.filter(t => ids.includes(t.id))
+  }
+}
+
+// Get trending tools (high review count + high rating)
+export async function getTrendingTools(limit: number = 6): Promise<Tool[]> {
+  try {
+    const tools = await prisma.tool.findMany({
+      orderBy: [
+        { reviewCount: 'desc' },
+        { rating: 'desc' },
+      ],
+      take: limit,
+    })
+
+    if (tools.length === 0) {
+      return mockTools.slice(0, limit)
+    }
+
+    return tools.map(transformTool)
+  } catch (error) {
+    console.error('Database error in getTrendingTools:', error)
+    return mockTools.slice(0, limit)
+  }
+}
+
+// Get new tools (recently added)
+export async function getNewTools(limit: number = 6): Promise<Tool[]> {
+  try {
+    const tools = await prisma.tool.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    })
+
+    if (tools.length === 0) {
+      return mockTools.slice(0, limit)
+    }
+
+    return tools.map(transformTool)
+  } catch (error) {
+    console.error('Database error in getNewTools:', error)
+    return mockTools.slice(0, limit)
+  }
+}
+
+// Get tool count
+export async function getToolCount(): Promise<number> {
+  try {
+    return await prisma.tool.count()
+  } catch (error) {
+    console.error('Database error in getToolCount:', error)
+    return mockTools.length
+  }
+}
+
+// Get hot news
+export async function getHotNews(limit: number = 3): Promise<NewsItem[]> {
+  try {
+    const news = await prisma.newsItem.findMany({
+      where: { isHot: true },
+      orderBy: { publishedAt: 'desc' },
+      take: limit,
+    })
+
+    if (news.length === 0) {
+      return mockNews.filter(n => n.isHot).slice(0, limit)
+    }
+
+    return news
+  } catch (error) {
+    console.error('Database error in getHotNews:', error)
+    return mockNews.filter(n => n.isHot).slice(0, limit)
+  }
 }

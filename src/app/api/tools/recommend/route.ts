@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all tools
-    const allTools = await getAllTools({})
+    const { tools: allTools } = await getAllTools({})
 
     // Get recommendations using the enhanced engine
     const result = getRecommendations(allTools, params.q, {
