@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET!
     )
   } catch (error) {
-    console.error('Webhook signature verification failed:', error)
+    logger.error('Webhook signature verification failed', error)
     return NextResponse.json(
       { error: 'Invalid signature' },
       { status: 400 }
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
 
           const subscriptionItem = subscription.items.data[0]
           if (!subscriptionItem?.price?.id) {
-            console.error('No subscription item or price found')
+            logger.error('No subscription item or price found')
             break
           }
 
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
         if (userId) {
           const subscriptionItem = subscription.items.data[0]
           if (!subscriptionItem?.price?.id) {
-            console.error('No subscription item or price found for update')
+            logger.error('No subscription item or price found for update')
             break
           }
 
@@ -142,14 +143,14 @@ export async function POST(request: NextRequest) {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
         // Send email notification about failed payment
-        console.log('Payment failed for invoice:', invoice.id)
+        logger.warn('Payment failed for invoice', { invoiceId: invoice.id })
         break
       }
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Error processing webhook:', error)
+    logger.error('Error processing webhook', error)
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

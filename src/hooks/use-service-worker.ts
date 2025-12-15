@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { logger } from '@/lib/logger'
 
 interface ServiceWorkerState {
   isSupported: boolean
@@ -51,9 +52,7 @@ export function useServiceWorker() {
             const handleStateChange = () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 // New content is available
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('[SW] New content available')
-                }
+                logger.info('[SW] New content available')
               }
             }
             newWorker.addEventListener('statechange', handleStateChange)
@@ -63,7 +62,7 @@ export function useServiceWorker() {
         updateFoundHandlerRef.current = handleUpdateFound
         registration.addEventListener('updatefound', handleUpdateFound)
       } catch (error) {
-        console.error('[SW] Registration failed:', error)
+        logger.error('[SW] Registration failed', error)
       }
     }
 

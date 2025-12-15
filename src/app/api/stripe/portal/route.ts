@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { createBillingPortalSession } from '@/lib/stripe'
 import { absoluteUrl } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 export async function POST() {
   try {
@@ -34,7 +35,7 @@ export async function POST() {
 
     return NextResponse.json({ url: portalSession.url })
   } catch (error) {
-    console.error('Error creating portal session:', error)
+    logger.error('Error creating portal session', error)
     return NextResponse.json(
       { error: 'Failed to create portal session' },
       { status: 500 }

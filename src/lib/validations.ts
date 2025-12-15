@@ -77,6 +77,14 @@ export const reviewSchema = z.object({
   cons: z.array(z.string().max(200)).max(5).optional(),
 })
 
+export const reviewUpdateSchema = z.object({
+  rating: z.number().int().min(1).max(5).optional(),
+  title: z.string().max(100).optional(),
+  content: z.string().min(10, 'Review must be at least 10 characters').max(2000).optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: 'At least one field must be provided for update',
+})
+
 // Utility function to parse search params
 export function parseSearchParams<T extends z.ZodTypeAny>(
   schema: T,
@@ -96,3 +104,4 @@ export type FavoriteAction = z.infer<typeof favoriteActionSchema>
 export type NewsletterSubscribe = z.infer<typeof newsletterSubscribeSchema>
 export type ContactForm = z.infer<typeof contactSchema>
 export type ReviewForm = z.infer<typeof reviewSchema>
+export type ReviewUpdate = z.infer<typeof reviewUpdateSchema>

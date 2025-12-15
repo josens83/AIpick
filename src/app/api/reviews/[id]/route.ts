@@ -7,6 +7,7 @@ import {
   apiError,
   ERROR_CODES,
 } from '@/lib/api-utils'
+import { reviewUpdateSchema } from '@/lib/validations'
 
 interface RouteParams {
   params: { id: string }
@@ -34,7 +35,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json()
-    const { rating, title, content } = body
+    const validationResult = reviewUpdateSchema.safeParse(body)
+
+    if (!validationResult.success) {
+      return apiError(
+        ERROR_CODES.VALIDATION_ERROR,
+        validationResult.error.errors[0]?.message || 'Invalid input'
+      )
+    }
+
+    const { rating, title, content } = validationResult.data
 
     const updatedReview = await prisma.review.update({
       where: { id: params.id },

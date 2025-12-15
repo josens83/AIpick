@@ -43,12 +43,23 @@ function CompareContent() {
     const toolsParam = searchParams.get('tools')
     if (toolsParam) {
       const slugs = toolsParam.split(',')
-      Promise.all(slugs.map(slug => getToolBySlug(slug)))
-        .then(tools => {
-          setSelectedTools(tools.filter(Boolean) as Tool[])
-        })
-        .catch(error => {
-          logger.error('Failed to load tools', error)
+      Promise.allSettled(slugs.map(slug => getToolBySlug(slug)))
+        .then(results => {
+          const tools = results
+            .filter((result): result is PromiseFulfilledResult<Tool | null> =>
+              result.status === 'fulfilled'
+            )
+            .map(result => result.value)
+            .filter((tool): tool is Tool => tool !== null)
+
+          // Log any failed fetches
+          results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+              logger.error(`Failed to load tool: ${slugs[index]}`, result.reason)
+            }
+          })
+
+          setSelectedTools(tools)
         })
     }
   }, [searchParams])

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
+import { logger } from '@/lib/logger'
 
 // Standard API Response Types
 export interface ApiSuccessResponse<T = unknown> {
@@ -115,7 +116,7 @@ export function handleApiError(error: unknown): NextResponse {
   }
 
   // Handle unknown errors
-  console.error('Unhandled API error:', error)
+  logger.error('Unhandled API error', error)
   return apiError(
     ERROR_CODES.INTERNAL_ERROR,
     process.env.NODE_ENV === 'production'
