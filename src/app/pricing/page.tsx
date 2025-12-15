@@ -273,14 +273,14 @@ export default function PricingPage() {
 
                   {/* Features */}
                   <ul className="space-y-3">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
+                    {plan.features.map((feature) => (
+                      <li key={`feature-${feature}`} className="flex items-start gap-2 text-sm">
                         <Check className="h-5 w-5 text-green-400 shrink-0" />
                         <span className="text-gray-300">{feature}</span>
                       </li>
                     ))}
-                    {plan.limitations.map((limitation, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-500">
+                    {plan.limitations.map((limitation) => (
+                      <li key={`limit-${limitation}`} className="flex items-start gap-2 text-sm text-gray-500">
                         <span className="w-5 text-center">-</span>
                         <span>{limitation}</span>
                       </li>
@@ -323,8 +323,8 @@ export default function PricingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {faqs.map((faq, index) => (
-              <Card key={index}>
+            {faqs.map((faq) => (
+              <Card key={faq.question}>
                 <CardContent className="p-6">
                   <div className="flex items-start gap-3">
                     <HelpCircle className="h-5 w-5 text-purple-400 shrink-0 mt-0.5" />

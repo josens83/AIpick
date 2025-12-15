@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/components/ui/use-toast'
 import { cn, formatDate, getInitials } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 interface Review {
   id: string
@@ -74,7 +75,7 @@ export function ReviewList({ toolId, refreshTrigger }: ReviewListProps) {
         setHasMore(data.data.length === 10)
       }
     } catch (error) {
-      console.error('Failed to fetch reviews:', error)
+      logger.error('Failed to fetch reviews', error)
     } finally {
       setIsLoading(false)
     }
@@ -97,7 +98,7 @@ export function ReviewList({ toolId, refreshTrigger }: ReviewListProps) {
         setHelpfulClicked((prev) => new Set([...prev, reviewId]))
       }
     } catch (error) {
-      console.error('Failed to mark as helpful:', error)
+      logger.error('Failed to mark as helpful', error)
     }
   }
 

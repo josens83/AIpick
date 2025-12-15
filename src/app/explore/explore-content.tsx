@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { ToolCard } from '@/components/ToolCard'
 import { getAllTools, categories } from '@/lib/data'
+import { logger } from '@/lib/logger'
 import type { Tool } from '@/types'
 
 interface ExploreContentProps {
@@ -70,7 +71,7 @@ export function ExploreContent({ searchParams }: ExploreContentProps) {
 
       setTools(results)
     } catch (err) {
-      console.error('Failed to fetch tools:', err)
+      logger.error('Failed to fetch tools', err)
       setError('도구를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.')
       setTools([])
     } finally {

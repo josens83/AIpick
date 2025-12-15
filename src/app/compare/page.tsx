@@ -27,6 +27,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { getAllTools, getToolBySlug } from '@/lib/data'
+import { logger } from '@/lib/logger'
 import type { Tool } from '@/types'
 
 function CompareContent() {
@@ -47,7 +48,7 @@ function CompareContent() {
           setSelectedTools(tools.filter(Boolean) as Tool[])
         })
         .catch(error => {
-          console.error('Failed to load tools:', error)
+          logger.error('Failed to load tools', error)
         })
     }
   }, [searchParams])
@@ -61,7 +62,7 @@ function CompareContent() {
           : await getAllTools()
         setSearchResults(result.tools)
       } catch (error) {
-        console.error('Failed to search tools:', error)
+        logger.error('Failed to search tools', error)
         setSearchResults([])
       }
     }

@@ -1,6 +1,6 @@
 'use client'
 
-import { memo } from 'react'
+import { memo, Fragment } from 'react'
 import { Check, X, Minus, Star, Users, DollarSign, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -154,7 +154,7 @@ export const FeatureComparisonTable = memo(function FeatureComparisonTable({
                   {/* Actions */}
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" asChild>
-                      <a href={tool.website} target="_blank" rel="noopener noreferrer">
+                      <a href={tool.url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="mr-1 h-3 w-3" />
                         방문
                       </a>
@@ -177,9 +177,9 @@ export const FeatureComparisonTable = memo(function FeatureComparisonTable({
 
         <tbody>
           {featureCategories.map((category) => (
-            <>
+            <Fragment key={category.name}>
               {/* Category Header */}
-              <tr key={category.name} className="bg-white/5">
+              <tr className="bg-white/5">
                 <td
                   colSpan={tools.length + 1}
                   className="sticky left-0 z-10 bg-white/5 px-4 py-2"
@@ -209,7 +209,7 @@ export const FeatureComparisonTable = memo(function FeatureComparisonTable({
                   ))}
                 </tr>
               ))}
-            </>
+            </Fragment>
           ))}
 
           {/* Tags comparison */}

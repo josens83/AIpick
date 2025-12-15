@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/use-toast'
 import { formatRelativeTime } from '@/lib/utils'
 import { getLatestNews } from '@/lib/data'
+import { logger } from '@/lib/logger'
 import type { NewsItem } from '@/types'
 
 const categories = ['전체', '출시', '업데이트', '튜토리얼', '산업뉴스']
@@ -33,7 +34,7 @@ export default function NewsPage() {
         setFilteredNews(data)
       })
       .catch((error) => {
-        console.error('Failed to fetch news:', error)
+        logger.error('Failed to fetch news', error)
         toast({
           title: '뉴스를 불러오는데 실패했습니다',
           description: '잠시 후 다시 시도해주세요',

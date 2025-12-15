@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn, formatDate } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 interface DashboardStats {
   overview: {
@@ -74,7 +75,7 @@ export function AdminDashboard() {
         setStats(data.data)
       }
     } catch (error) {
-      console.error('Failed to fetch stats:', error)
+      logger.error('Failed to fetch stats', error)
     } finally {
       setIsLoading(false)
     }
@@ -240,7 +241,7 @@ export function AdminDashboard() {
             <div className="space-y-4">
               {stats.recentActivity.map((activity, index) => (
                 <div
-                  key={index}
+                  key={`${activity.type}-${activity.user}-${activity.date}-${index}`}
                   className="flex items-center justify-between border-b border-white/5 pb-3 last:border-0"
                 >
                   <div>

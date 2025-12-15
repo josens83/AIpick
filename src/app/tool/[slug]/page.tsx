@@ -159,8 +159,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
                   </CardHeader>
                   <CardContent>
                     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {tool.features.map((feature, index) => (
-                        <li key={index} className="flex items-center gap-2 text-gray-300">
+                      {tool.features.map((feature) => (
+                        <li key={feature} className="flex items-center gap-2 text-gray-300">
                           <Check className="h-4 w-4 text-green-400 shrink-0" />
                           {feature}
                         </li>
@@ -177,8 +177,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {tool.pros.map((pro, index) => (
-                          <li key={index} className="flex items-start gap-2 text-gray-300">
+                        {tool.pros.map((pro) => (
+                          <li key={pro} className="flex items-start gap-2 text-gray-300">
                             <Check className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
                             {pro}
                           </li>
@@ -192,8 +192,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {tool.cons.map((con, index) => (
-                          <li key={index} className="flex items-start gap-2 text-gray-300">
+                        {tool.cons.map((con) => (
+                          <li key={con} className="flex items-start gap-2 text-gray-300">
                             <X className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
                             {con}
                           </li>
@@ -241,8 +241,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
                     )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {tool.pricing.plans.map((plan, index) => (
-                        <Card key={index} className="border-white/10">
+                      {tool.pricing.plans.map((plan) => (
+                        <Card key={plan.name} className="border-white/10">
                           <CardContent className="p-4">
                             <h4 className="font-semibold text-white mb-1">{plan.name}</h4>
                             <p className="text-2xl font-bold text-purple-400 mb-4">{plan.price}</p>
@@ -250,8 +250,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
                               <p className="text-sm text-gray-400 -mt-3 mb-4">{plan.period}</p>
                             )}
                             <ul className="space-y-2">
-                              {plan.features.map((feature, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                              {plan.features.map((feature) => (
+                                <li key={feature} className="flex items-start gap-2 text-sm text-gray-300">
                                   <Check className="h-4 w-4 text-purple-400 shrink-0 mt-0.5" />
                                   {feature}
                                 </li>
