@@ -1,0 +1,74 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":automergeMinor",
+    "schedule:weekly"
+  ],
+  "timezone": "Asia/Seoul",
+  "labels": ["dependencies"],
+  "prHourlyLimit": 5,
+  "prConcurrentLimit": 10,
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "Automerge non-major updates",
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Group Next.js related packages",
+      "matchPackagePatterns": ["^next", "^@next/"],
+      "groupName": "Next.js"
+    },
+    {
+      "description": "Group React packages",
+      "matchPackagePatterns": ["^react", "^@types/react"],
+      "groupName": "React"
+    },
+    {
+      "description": "Group Radix UI packages",
+      "matchPackagePatterns": ["^@radix-ui/"],
+      "groupName": "Radix UI"
+    },
+    {
+      "description": "Group testing packages",
+      "matchPackagePatterns": ["^@testing-library/", "^vitest", "^@vitest/", "msw"],
+      "groupName": "Testing"
+    },
+    {
+      "description": "Group Prisma packages",
+      "matchPackagePatterns": ["^prisma", "^@prisma/"],
+      "groupName": "Prisma"
+    },
+    {
+      "description": "Group Stripe packages",
+      "matchPackagePatterns": ["^stripe", "^@stripe/"],
+      "groupName": "Stripe"
+    },
+    {
+      "description": "Group TypeScript and ESLint",
+      "matchPackagePatterns": ["typescript", "eslint", "@typescript-eslint"],
+      "groupName": "TypeScript and Linting"
+    },
+    {
+      "description": "Disable major updates for critical packages",
+      "matchPackageNames": ["next", "react", "react-dom"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Weekly schedule for development dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "schedule": ["before 9am on monday"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "automerge": true
+  }
+}
